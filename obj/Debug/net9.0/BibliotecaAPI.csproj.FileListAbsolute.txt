@@ -43,3 +43,4 @@ C:\Users\gabri\BibliotecaAPI\bin\Debug\net9.0\Mono.TextTemplating.dll
 C:\Users\gabri\BibliotecaAPI\bin\Debug\net9.0\MySqlConnector.dll
 C:\Users\gabri\BibliotecaAPI\bin\Debug\net9.0\Pomelo.EntityFrameworkCore.MySql.dll
 C:\Users\gabri\BibliotecaAPI\bin\Debug\net9.0\System.CodeDom.dll
+C:\Users\gabri\BibliotecaAPI\obj\Debug\net9.0\BibliotecaAPI.sourcelink.json
