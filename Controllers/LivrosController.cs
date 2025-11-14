@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BibliotecaAPI.Data;
 using BibliotecaAPI.Models;
+using BibliotecaAPI.DTOs;
 
-namespace BibliotecaAPI.AddControllers
+namespace BibliotecaAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -18,61 +19,76 @@ namespace BibliotecaAPI.AddControllers
 
         // GET: api/livros
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Livro>>> GetLivros()
+        public async Task<ActionResult<IEnumerable<LivroDTO>>> GetLivros()
         {
-            return await _context.Livros.ToListAsync();
+            var livros = await _context.Livros
+                .Select(l => new LivroDTO
+                {
+                    Id = l.Id,
+                    Titulo = l.Titulo,
+                    Autor = l.Autor,
+                    Ano = l.Ano,
+                    Disponivel = l.Disponivel
+                })
+                .ToListAsync();
+
+            return livros;    
         }
 
         // GET: api/livros/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Livro>> GetLivro(int id)
+        public async Task<ActionResult<LivroDTO>> GetLivro(int id)
         {
             var livro = await _context.Livros.FindAsync(id);
 
             if (livro == null)
-            {
                 return NotFound();
-            }
-
-            return livro;
+            
+            return new LivroDTO
+            {
+                Id = livro.Id,
+                Titulo = livro.Titulo,
+                Autor = livro.Autor,
+                Ano = livro.Ano,
+                Disponivel = livro.Disponivel
+            };
         }
 
         // POST: api/livros
         [HttpPost]
-        public async Task<ActionResult<Livro>> PostLivro(Livro livro)
+        public async Task<ActionResult<LivroDTO>> PostLivro(LivroDTO dto)
         {
+            var livro = new Livro
+            {
+                Titulo = dto.Titulo,
+                Autor = dto.Autor,
+                Ano = dto.Ano,
+                Disponivel = dto.Disponivel
+            };
+
             _context.Livros.Add(livro);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetLivro), new { id = livro.Id }, livro);
+            dto.Id = livro.Id;
+
+            return CreatedAtAction(nameof(GetLivro), new { id = livro.Id }, dto);
         }
 
         // PUT: api/livros/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutLivro(int id, Livro livro)
+        public async Task<IActionResult> PutLivro(int id, LivroDTO dto)
         {
-            if (id != livro.Id)
-            {
-                return BadRequest();
-            }
+            var livro = await _context.Livros.FindAsync(id);
 
-            _context.Entry(livro).State = EntityState.Modified;
+            if (livro == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Livros.Any(e => e.Id == id))
-                {
-                    return NotFound();
-                }
-                else 
-                {
-                    throw;
-                }
-            }
+            livro.Titulo = dto.Titulo;
+            livro.Autor = dto.Autor;
+            livro.Ano = dto.Ano;
+            livro.Disponivel = dto.Disponivel;
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -82,10 +98,10 @@ namespace BibliotecaAPI.AddControllers
         public async Task<IActionResult> DeleteLivro(int id)
         {
             var livro = await _context.Livros.FindAsync(id);
+
             if (livro == null)
-            {
                 return NotFound();
-            }
+
 
             _context.Livros.Remove(livro);
             await _context.SaveChangesAsync();
