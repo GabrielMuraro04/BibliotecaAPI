@@ -10,8 +10,8 @@ namespace BibliotecaAPI.Data
         {
         }
 
-        // Aqui você adiciona os DbSets para suas entidades
         public DbSet<Livro> Livros { get; set; } = null!;
         public DbSet<Usuario> Usuarios { get; set; } = null!;
+        public DbSet<Emprestimo> Emprestimos { get; set; }
     }
 }
