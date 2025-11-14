@@ -3,7 +3,7 @@ using BibliotecaAPI.Data;
 using BibliotecaAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BibliotecaAPI.AddControllers
+namespace BibliotecaAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
