@@ -17,6 +17,7 @@ namespace BibliotecaAPI.Controllers
             _context = context;
         }
 
+        // GET: api/emprestimos
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Emprestimo>>> GetEmprestimos()
         {
@@ -26,7 +27,36 @@ namespace BibliotecaAPI.Controllers
                 .ToListAsync();
         }
 
+        // GET: api/emprestimos/ativos
+        [HttpGet("ativos")]
+        public async Task<ActionResult<IEnumerable<Emprestimo>>> GetEmprestimosAtivos()
+        {
+            var emprestimosAtivos = await _context.Emprestimos
+                .Include(e => e.Livro)
+                .Include(e => e.Usuario)
+                .Where(e => e.DataDevolucao == null)
+                .ToListAsync();
 
+            return emprestimosAtivos;
+        }
+
+        // GET: api/emprestimos/atrasados
+        [HttpGet("atrasados")]
+        public async Task<ActionResult<IEnumerable<Emprestimo>>> GetEmprestimosAtrasados()
+        {
+            var hoje = DateTime.Now;
+
+            var emprestimosAtrasados = await _context.Emprestimos
+                .Include(e => e.Livro)
+                .Include(e => e.Usuario)
+                .Where(e => e.DataDevolucao == null &&
+                            EF.Functions.DateDiffDay(e.DataEmprestimo, hoje) > 7)
+                .ToListAsync();
+
+            return emprestimosAtrasados;
+        }
+
+        // POST: api/emprestimos
         [HttpPost]
         public async Task<ActionResult<Emprestimo>> PostEmprestimo(EmprestimoDTO dto)
         {
@@ -51,9 +81,10 @@ namespace BibliotecaAPI.Controllers
             _context.Emprestimos.Add(emprestimo);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetEmprestimos), new { id = emprestimo.Id }, emprestimo); 
-        } 
+            return CreatedAtAction(nameof(GetEmprestimos), new { id = emprestimo.Id }, emprestimo);
+        }
 
+        // PUT: api/emprestimos/devolver/{id}
         [HttpPut("devolver/{id}")]
         public async Task<IActionResult> DevolverEmprestimo(int id)
         {
@@ -72,6 +103,6 @@ namespace BibliotecaAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }  
+        }
     }
 }
