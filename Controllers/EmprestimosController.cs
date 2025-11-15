@@ -42,6 +42,24 @@ namespace BibliotecaAPI.Controllers
             return emprestimo;
         }
 
+        // GET: api/emprestimos/usuario/5
+        [HttpGet("usuario/{usuarioId}")]
+        public async Task<ActionResult<IEnumerable<Emprestimo>>> GetEmprestimosPorUsuario(int usuarioId)
+        {
+            var usuario = await _context.Usuarios.FindAsync(usuarioId);
+            if (usuario == null)
+                return NotFound($"Usuário com Id {usuarioId} não encontrado.");
+
+            var emprestimos = await _context.Emprestimos
+                .Include(e => e.Livro)
+                .Include(e => e.Usuario)
+                .Where(e => e.UsuarioId == usuarioId)
+                .OrderByDescending(e => e.DataEmprestimo)
+                .ToListAsync();
+
+            return emprestimos;
+        }
+
         // POST: api/emprestimos
         [HttpPost]
         public async Task<ActionResult<Emprestimo>> PostEmprestimo(EmprestimoDTO dto)
@@ -49,10 +67,10 @@ namespace BibliotecaAPI.Controllers
             var livro = await _context.Livros.FindAsync(dto.LivroId);
             var usuario = await _context.Usuarios.FindAsync(dto.UsuarioId);
 
-            if (livro == null) 
+            if (livro == null)
                 return NotFound($"Livro com Id {dto.LivroId} não encontrado.");
 
-            if (usuario == null) 
+            if (usuario == null)
                 return NotFound($"Usuário com Id {dto.UsuarioId} não encontrado.");
 
             if (!livro.Disponivel)
@@ -73,7 +91,7 @@ namespace BibliotecaAPI.Controllers
             return CreatedAtAction(nameof(GetEmprestimo), new { id = emprestimo.Id }, emprestimo);
         }
 
-        // PUT: api/emprestimos/devolver/5
+        // PUT: api/Emprestimos/devolver/{id}
         [HttpPut("devolver/{id}")]
         public async Task<IActionResult> DevolverEmprestimo(int id)
         {
@@ -81,18 +99,30 @@ namespace BibliotecaAPI.Controllers
                 .Include(e => e.Livro)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            if (emprestimo == null) 
-                return NotFound();
+            if (emprestimo == null)
+                return NotFound(new { message = "Empréstimo não encontrado." });
 
             if (emprestimo.DataDevolucao != null)
-                return BadRequest("Este empréstimo já foi devolvido.");
+                return BadRequest(new { message = "Este empréstimo já foi devolvido." });
 
+            // Marca a devolução
             emprestimo.DataDevolucao = DateTime.Now;
+
+            // Deixa o livro disponível novamente
             emprestimo.Livro.Disponivel = true;
 
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new
+            {
+                message = "Livro devolvido com sucesso!",
+                emprestimo.Id,
+                emprestimo.UsuarioId,
+                emprestimo.LivroId,
+                emprestimo.DataEmprestimo,
+                emprestimo.DataDevolucao
+            });
         }
+
     }
 }
