@@ -13,5 +13,7 @@ namespace BibliotecaAPI.Data
         public DbSet<Livro> Livros { get; set; } = null!;
         public DbSet<Usuario> Usuarios { get; set; } = null!;
         public DbSet<Emprestimo> Emprestimos { get; set; }
+        public DbSet<Categoria> Categorias { get; set; }
+
     }
 }
