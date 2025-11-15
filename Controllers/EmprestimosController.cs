@@ -27,33 +27,19 @@ namespace BibliotecaAPI.Controllers
                 .ToListAsync();
         }
 
-        // GET: api/emprestimos/ativos
-        [HttpGet("ativos")]
-        public async Task<ActionResult<IEnumerable<Emprestimo>>> GetEmprestimosAtivos()
+        // GET: api/emprestimos/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Emprestimo>> GetEmprestimo(int id)
         {
-            var emprestimosAtivos = await _context.Emprestimos
+            var emprestimo = await _context.Emprestimos
                 .Include(e => e.Livro)
                 .Include(e => e.Usuario)
-                .Where(e => e.DataDevolucao == null)
-                .ToListAsync();
+                .FirstOrDefaultAsync(e => e.Id == id);
 
-            return emprestimosAtivos;
-        }
+            if (emprestimo == null)
+                return NotFound();
 
-        // GET: api/emprestimos/atrasados
-        [HttpGet("atrasados")]
-        public async Task<ActionResult<IEnumerable<Emprestimo>>> GetEmprestimosAtrasados()
-        {
-            var hoje = DateTime.Now;
-
-            var emprestimosAtrasados = await _context.Emprestimos
-                .Include(e => e.Livro)
-                .Include(e => e.Usuario)
-                .Where(e => e.DataDevolucao == null &&
-                            EF.Functions.DateDiffDay(e.DataEmprestimo, hoje) > 7)
-                .ToListAsync();
-
-            return emprestimosAtrasados;
+            return emprestimo;
         }
 
         // POST: api/emprestimos
@@ -63,8 +49,11 @@ namespace BibliotecaAPI.Controllers
             var livro = await _context.Livros.FindAsync(dto.LivroId);
             var usuario = await _context.Usuarios.FindAsync(dto.UsuarioId);
 
-            if (livro == null) return NotFound($"Livro com Id {dto.LivroId} não encontrado.");
-            if (usuario == null) return NotFound($"Usuário com Id {dto.UsuarioId} não encontrado.");
+            if (livro == null) 
+                return NotFound($"Livro com Id {dto.LivroId} não encontrado.");
+
+            if (usuario == null) 
+                return NotFound($"Usuário com Id {dto.UsuarioId} não encontrado.");
 
             if (!livro.Disponivel)
                 return BadRequest($"Livro '{livro.Titulo}' não está disponível no momento.");
@@ -81,10 +70,10 @@ namespace BibliotecaAPI.Controllers
             _context.Emprestimos.Add(emprestimo);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetEmprestimos), new { id = emprestimo.Id }, emprestimo);
+            return CreatedAtAction(nameof(GetEmprestimo), new { id = emprestimo.Id }, emprestimo);
         }
 
-        // PUT: api/emprestimos/devolver/{id}
+        // PUT: api/emprestimos/devolver/5
         [HttpPut("devolver/{id}")]
         public async Task<IActionResult> DevolverEmprestimo(int id)
         {
@@ -92,7 +81,8 @@ namespace BibliotecaAPI.Controllers
                 .Include(e => e.Livro)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            if (emprestimo == null) return NotFound();
+            if (emprestimo == null) 
+                return NotFound();
 
             if (emprestimo.DataDevolucao != null)
                 return BadRequest("Este empréstimo já foi devolvido.");
