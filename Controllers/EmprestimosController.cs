@@ -17,7 +17,6 @@ namespace BibliotecaAPI.Controllers
             _context = context;
         }
 
-        // GET: api/emprestimos
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Emprestimo>>> GetEmprestimos()
         {
@@ -27,7 +26,6 @@ namespace BibliotecaAPI.Controllers
                 .ToListAsync();
         }
 
-        // GET: api/emprestimos/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Emprestimo>> GetEmprestimo(int id)
         {
@@ -42,7 +40,6 @@ namespace BibliotecaAPI.Controllers
             return emprestimo;
         }
 
-        // GET: api/emprestimos/usuario/5
         [HttpGet("usuario/{usuarioId}")]
         public async Task<ActionResult<IEnumerable<Emprestimo>>> GetEmprestimosPorUsuario(int usuarioId)
         {
@@ -60,7 +57,6 @@ namespace BibliotecaAPI.Controllers
             return emprestimos;
         }
 
-        // POST: api/emprestimos
         [HttpPost]
         public async Task<ActionResult<Emprestimo>> PostEmprestimo(EmprestimoDTO dto)
         {
@@ -91,7 +87,6 @@ namespace BibliotecaAPI.Controllers
             return CreatedAtAction(nameof(GetEmprestimo), new { id = emprestimo.Id }, emprestimo);
         }
 
-        // PUT: api/Emprestimos/devolver/{id}
         [HttpPut("devolver/{id}")]
         public async Task<IActionResult> DevolverEmprestimo(int id)
         {
@@ -105,10 +100,8 @@ namespace BibliotecaAPI.Controllers
             if (emprestimo.DataDevolucao != null)
                 return BadRequest(new { message = "Este empréstimo já foi devolvido." });
 
-            // Marca a devolução
             emprestimo.DataDevolucao = DateTime.Now;
 
-            // Deixa o livro disponível novamente
             emprestimo.Livro.Disponivel = true;
 
             await _context.SaveChangesAsync();
